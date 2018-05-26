@@ -1,0 +1,274 @@
+{-# LANGUAGE NamedFieldPuns #-}
+--
+module Filter where
+--
+-- import Prelude hiding (floor)
+-- import qualified Prelude
+--
+-- import Predicate
+--
+-- data Bezirk
+--   = Mitte
+--   | Friedrichshain
+--   | Kreuzberg
+--   | PrenzlauerBerg
+--   | Charlottenburg
+--   | Spandau
+--   | Schöneberg
+--   | Neukölln
+--   | MarzahnHellersdorf
+--   | Lichtenberg
+--   | Reinickendorf
+--   deriving (Show, Eq)
+--
+-- data Floor
+--   = Ground
+--   | Floor Int
+--   | Attic
+--   deriving (Show, Eq, Ord)
+--
+-- -- instance Ord Floor where
+-- --   compare Ground Ground = EQ
+-- --   compare Ground _ = LT
+-- --   compare Attic Attic = EQ
+-- --   compare Attic _ = GT
+-- --   compare (Floor a) (Floor b) = compare a b
+-- --   compare (Floor _) Ground = GT
+-- --   compare (Floor _) Attic = LT
+--
+-- data Apartment = Apartment
+--   { address :: String
+--   , rooms   :: Int
+--   , rent    :: Float
+--   , bezirk  :: Bezirk
+--   , area    :: Float
+--   , floor   :: Floor
+--   , lift    :: Bool
+--   } deriving (Show)
+--
+-- data Filter a
+--   = Condition (Predicate a)
+--   | And [Filter a]
+--   | Or [Filter a]
+--   | Not (Filter a)
+--
+-- runFilter :: Filter a -> a -> Bool
+-- runFilter (Condition pr) value = pr value
+-- runFilter (And filters)  value = and $ map (flip runFilter $ value) filters
+-- runFilter (Or filters)   value = or  $ map (flip runFilter $ value) filters
+-- runFilter (Not f)        value = not $ runFilter f value
+--
+-- invert :: Filter a -> Filter a
+-- invert (Condition pr) = Condition $ not' pr
+-- invert (And filters)  = Or $ map invert filters
+-- invert (Or filters)   = And $ map invert filters
+-- invert (Not f)        = f
+--
+-- rentFilter :: Filter Apartment
+-- rentFilter = Condition $ rent `is` (< 500.0)
+--
+-- preciseArea :: Filter Apartment
+-- preciseArea = Condition $ \(Apartment {area}) -> Prelude.floor area /= ceiling area
+--
+-- inCharlottenburg :: Filter Apartment
+-- inCharlottenburg = Condition $ bezirk `equals` Charlottenburg
+--
+-- isGroundFloor :: Filter Apartment
+-- isGroundFloor = Condition $ floor `equals` Ground
+--
+-- hasLift :: Filter Apartment
+-- hasLift = Condition $ lift `equals` True
+--
+-- eurPerSqm :: Apartment -> Float
+-- eurPerSqm (Apartment {area, rent}) = rent / area
+--
+-- is :: (r -> a) -> Predicate a -> Predicate r
+-- is = flip (.)
+--
+-- bezirkFilter :: [Bezirk] -> Filter Apartment
+-- bezirkFilter = oneOf bezirk
+--
+-- oneOf :: (Eq a) => (r -> a) -> [a] -> Filter r
+-- oneOf f = Or . map (Condition . equals f)
+--
+-- equals :: (Eq a) => (r -> a) -> a -> Predicate r
+-- equals f v = is f (== v)
+--
+-- aptFilter :: Filter Apartment
+-- aptFilter = invert $ And
+--               [ Not isGroundFloor
+--               , Or
+--                   [ Condition $ floor `is` (< Floor 4)
+--                   , hasLift
+--                   ]
+--               , Condition $ eurPerSqm `is` (< 13.0)
+--               , bezirkFilter [Charlottenburg, Kreuzberg, Neukölln]
+--               , Condition $ rooms `is` (>= 3)
+--               ]
+--
+-- apartments :: [Apartment]
+-- apartments =
+--   [ Apartment
+--     { address = "Otto-Suhr-Allee 114"
+--     , rooms   = 1
+--     , rent    = 620.0
+--     , bezirk  = Charlottenburg
+--     , area    = 50.0
+--     , floor   = Ground
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Wilmersdorfer Straße 37"
+--     , rooms   = 3
+--     , rent    = 1400.0
+--     , bezirk  = Charlottenburg
+--     , area    = 89.0
+--     , floor   = Floor 4
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Nogatstraße 31"
+--     , rooms   = 1
+--     , rent    = 516.0
+--     , bezirk  = Neukölln
+--     , area    = 43.0
+--     , floor   = Floor 3
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Beethovenstr. 16"
+--     , rooms   = 3
+--     , rent    = 1093.0
+--     , bezirk  = Schöneberg
+--     , area    = 99.83
+--     , floor   = Floor 3
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Mehringdamm 43"
+--     , rooms   = 3
+--     , rent    = 740.0
+--     , bezirk  = Kreuzberg
+--     , area    = 85.0
+--     , floor   = Floor 3
+--     , lift    = True
+--     }
+--   , Apartment
+--     { address = "Tempelhofer Feld"
+--     , rooms   = 2
+--     , rent    = 780.0
+--     , bezirk  = Neukölln
+--     , area    = 71.0
+--     , floor   = Ground
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Marienfelder Allee 27"
+--     , rooms   = 2
+--     , rent    = 600.0
+--     , bezirk  = Neukölln
+--     , area    = 52.5
+--     , floor   = Floor 4
+--     , lift    = True
+--     }
+--   , Apartment
+--     { address = "Dietrich-Bonhoeffer-Straße 2"
+--     , rooms   = 2
+--     , rent    = 702.0
+--     , bezirk  = PrenzlauerBerg
+--     , area    = 54
+--     , floor   = Floor 1
+--     , lift    = True
+--     }
+--   , Apartment
+--     { address = "Kurfürstenstr. 15"
+--     , rooms   = 2
+--     , rent    = 1300.0
+--     , bezirk  = Mitte
+--     , area    = 110
+--     , floor   = Floor 4
+--     , lift    = True
+--     }
+--   , Apartment
+--     { address = "Dahlmannstrasse 2"
+--     , rooms   = 2
+--     , rent    = 850.0
+--     , bezirk  = Charlottenburg
+--     , area    = 72
+--     , floor   = Floor 3
+--     , lift    = True
+--     }
+--   , Apartment
+--     { address = "Alt Moabit 37"
+--     , rooms   = 2
+--     , rent    = 389.62
+--     , bezirk  = Charlottenburg
+--     , area    = 59.85
+--     , floor   = Floor 3
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Rauschener Alle 1"
+--     , rooms   = 2
+--     , rent    = 800.0
+--     , bezirk  = Charlottenburg
+--     , area    = 58.0
+--     , floor   = Floor 3
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Kurfürstendamm 74"
+--     , rooms   = 3
+--     , rent    = 1055.0
+--     , bezirk  = Charlottenburg
+--     , area    = 84.41
+--     , floor   = Floor 2
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Freiheitsweg 13"
+--     , rooms   = 1
+--     , rent    = 313.48
+--     , bezirk  = Reinickendorf
+--     , area    = 37.21
+--     , floor   = Attic
+--     , lift    = False
+--     }
+--   , Apartment
+--     { address = "Steglitzer Damm 51B"
+--     , rooms   = 2
+--     , rent    = 768.5
+--     , bezirk  = Reinickendorf
+--     , area    = 58.0
+--     , floor   = Floor 1
+--     , lift    = True
+--     }
+--   , Apartment
+--     { address = "Kurfürstendamm 105"
+--     , rooms   = 1
+--     , rent    = 495.0
+--     , bezirk  = Charlottenburg
+--     , area    = 41.0
+--     , floor   = Floor 3
+--     , lift    = True
+--     }
+--   , Apartment
+--     { address = "Breite Straße 29"
+--     , rooms   = 4
+--     , rent    = 820.0
+--     , bezirk  = Spandau
+--     , area    = 84.0
+--     , floor   = Floor 2
+--     , lift    = True
+--     }
+--   , Apartment
+--     { address = "Müllerstr. 29"
+--     , rooms   = 2
+--     , rent    = 628.0
+--     , bezirk  = PrenzlauerBerg
+--     , area    = 56.13
+--     , floor   = Ground
+--     , lift    = False
+--     }
+--
+--   ]
