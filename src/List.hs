@@ -2,7 +2,10 @@
 
 module List where
 
-import Prelude (Int, (+), const, ($), Show(show), Functor(fmap), (++), (.))
+import Prelude (Int, (+), const, ($), Show(show), Functor(fmap), Foldable(foldr, foldl, foldMap), (++), (.))
+import Data.Semigroup (Semigroup((<>)))
+import Data.Monoid (Monoid(mempty))
+
 import Base (Bool, flip, if')
 import Maybe (Maybe(..))
 
@@ -11,8 +14,10 @@ data List a
   | Cons a (List a)
 
 instance (Show a) => Show (List a) where
-  show Empty      = ""
-  show (Cons h t) = show h ++ ", " ++ show t
+  show list = "[" ++ go list ++ "]"
+    where
+      go (Cons h Empty) = show h
+      go (Cons h t) = show h ++ ", " ++ go t
 
 instance Functor List where
   fmap = map
@@ -35,16 +40,18 @@ l4 = 4 % 7 % 11 % 13 % Empty
 -- length Empty      = 0
 -- length (Cons _ t) = 1 + length t
 
-foldl :: (b -> a -> b) -> b -> List a -> b
-foldl _ acc Empty = acc
-foldl f acc (Cons h t) = foldl f (f acc h) t
+instance Foldable List where
+  foldr _ acc Empty = acc
+  foldr f acc (Cons h t) = f h (foldr f acc t)
 
-foldr :: (a -> b -> b) -> b -> List a -> b
-foldr _ acc Empty = acc
-foldr f acc (Cons h t) = f h (foldr f acc t)
+instance Semigroup (List a) where
+  (<>) = concat
 
-sum :: List Int -> Int
-sum = foldl (+) 0
+instance Monoid (List a) where
+  mempty  = Empty
+
+-- sum :: List Int -> Int
+-- sum = foldl (+) 0
 
 length :: List a -> Int
 length = foldr (const $ (+) 1) 0
@@ -69,7 +76,7 @@ concat :: List a -> List a -> List a
 concat listA listB = foldr prepend listB listA
 
 concatMap :: (a -> List b) -> List a -> List b
-concatMap f list = foldl (\acc item -> concat acc (f item)) Empty list
+concatMap = foldMap
 
 head :: List a -> Maybe a
 head Empty      = Nothing
