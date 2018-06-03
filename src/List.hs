@@ -5,6 +5,8 @@ module List where
 import Prelude (Int, (+), const, ($), Show(show), Functor(fmap), Foldable(foldr, foldl, foldMap), (++), (.))
 import Data.Semigroup (Semigroup((<>)))
 import Data.Monoid (Monoid(mempty))
+import Control.Applicative (Applicative(pure, (<*>)))
+import Control.Monad (Monad((>>=)))
 
 import Base (Bool, flip, if')
 import Maybe (Maybe(..))
@@ -16,11 +18,34 @@ data List a
 instance (Show a) => Show (List a) where
   show list = "[" ++ go list ++ "]"
     where
+      go Empty = ""
       go (Cons h Empty) = show h
       go (Cons h t) = show h ++ ", " ++ go t
 
+instance Foldable List where
+  foldr _ acc Empty = acc
+  foldr f acc (Cons h t) = f h (foldr f acc t)
+
+instance Semigroup (List a) where
+  (<>) = concat
+
+instance Monoid (List a) where
+  mempty = Empty
+
 instance Functor List where
   fmap = map
+
+instance Applicative List where
+  pure a = Cons a Empty
+  (<*>) lf la =
+    foldl (\acc a -> foldl (\acc' f -> Cons (f a) acc')
+                     acc
+                     lf)
+          Empty
+          la
+
+instance Monad List where
+  (>>=) = flip concatMap
 
 l3 :: List Int
 l3 = Cons 2 (Cons 5 (Cons 9 Empty))
@@ -39,16 +64,6 @@ l4 = 4 % 7 % 11 % 13 % Empty
 -- length :: List a -> Int
 -- length Empty      = 0
 -- length (Cons _ t) = 1 + length t
-
-instance Foldable List where
-  foldr _ acc Empty = acc
-  foldr f acc (Cons h t) = f h (foldr f acc t)
-
-instance Semigroup (List a) where
-  (<>) = concat
-
-instance Monoid (List a) where
-  mempty  = Empty
 
 -- sum :: List Int -> Int
 -- sum = foldl (+) 0
