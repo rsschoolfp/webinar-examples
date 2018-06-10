@@ -2,7 +2,7 @@
 
 module List where
 
-import Prelude (Int, (+), const, ($), Show(show), Functor(fmap), Foldable(foldr, foldl, foldMap), (++), (.))
+import Prelude (Int, (+), const, ($), Show(show), Functor(fmap), (<$>), Foldable(foldr, foldl, foldMap), (++), (.))
 import Data.Semigroup (Semigroup((<>)))
 import Data.Monoid (Monoid(mempty))
 import Control.Applicative (Applicative(pure, (<*>)))
