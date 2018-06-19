@@ -3,9 +3,11 @@
 
 module Maybe where
 
-import Prelude (Show, Functor(fmap), ($))
-import Data.Monoid (Monoid(mempty, mappend), (<>))
+import Prelude (Show)
+
 import Data.Semigroup (Semigroup((<>)))
+import Data.Monoid (Monoid(mempty, mappend), (<>))
+import Data.Functor (Functor(fmap))
 import Control.Applicative (Applicative(pure, (<*>)))
 import Control.Monad (Monad((>>=)))
 
@@ -29,12 +31,13 @@ instance (Monoid a) => Monoid (Maybe a) where
 
 instance Applicative Maybe where
   pure = Just
-  (<*>) (Just f) (Just a) = Just $ f a
-  (<*>) _ _               = Nothing
+  Just f  <*> m = fmap f m
+  Nothing <*> _ = Nothing
 
 instance Monad Maybe where
-  (>>=) (Just a) f = f a
-  (>>=) _        _ = Nothing
+  (>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b
+  Nothing >>= f = Nothing
+  Just a  >>= f = f a
 
 maybe :: b -> (a -> b) -> Maybe a -> b
 maybe fallback f mA =

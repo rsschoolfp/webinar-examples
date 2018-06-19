@@ -2,11 +2,12 @@
 
 module List where
 
-import Prelude (Int, (+), const, ($), Show(show), Functor(fmap), (<$>), Foldable(foldr, foldl, foldMap), (++), (.))
+import Prelude (Int, (+), const, ($), Show(show), Functor(fmap), (++), (.), (<$>))
 import Data.Semigroup (Semigroup((<>)))
 import Data.Monoid (Monoid(mempty))
 import Control.Applicative (Applicative(pure, (<*>)))
-import Control.Monad (Monad((>>=)))
+import Control.Monad (Monad((>>=)), (>=>), foldM)
+import Data.Foldable (Foldable(foldr), foldl, foldMap)
 
 import Base (Bool, flip, if')
 import Maybe (Maybe(..))
@@ -106,3 +107,6 @@ tail2 list =
   case tail list of
     Nothing -> Nothing
     Just t  -> tail t
+
+tail2' :: List a -> Maybe (List a)
+tail2' = tail >=> tail

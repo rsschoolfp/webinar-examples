@@ -2,7 +2,8 @@
 
 module Main where
 
-import Prelude (IO, pure, Int, Show(show), String, (+), (++))
+import Prelude (IO, pure, Int, Show(show), String, (+), (++), getLine, const, (<$>), ($), show, putStrLn, (++), length, (.), (>>=))
+import Data.Functor ((<$))
 
 data Month
   = January
@@ -32,4 +33,14 @@ swap :: (a, b) -> (b, a)
 swap (a, b) = (b, a)
 
 main :: IO ()
-main = pure ()
+-- getLine :: IO String
+-- length :: String -> Int
+-- show :: Int -> String
+-- putStrLn :: String -> IO ()
+-- IO String -> (String -> IO ()) -> IO ()
+-- main = (show . length) <$> getLine >>= putStrLn
+
+main = do
+  line <- getLine
+  putStrLn $ show $ length line
+  -- putStrLn $ line ++ " !! " ++ anotherLine
