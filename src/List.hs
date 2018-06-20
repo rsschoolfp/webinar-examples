@@ -2,12 +2,13 @@
 
 module List where
 
-import Prelude (Int, (+), const, ($), Show(show), Functor(fmap), (++), (.), (<$>))
+import Prelude (Eq((==)), Int, (+), (*), const, ($), Show(show), Functor(fmap), (++), (.), (<$>))
 import Data.Semigroup (Semigroup((<>)))
 import Data.Monoid (Monoid(mempty))
-import Control.Applicative (Applicative(pure, (<*>)))
-import Control.Monad (Monad((>>=)), (>=>), foldM)
+import Control.Applicative (Applicative(pure, (<*>)), Alternative(empty, (<|>)))
+import Control.Monad (Monad((>>=)), (>=>), foldM, guard)
 import Data.Foldable (Foldable(foldr), foldl, foldMap)
+import Data.Bool (otherwise)
 
 import Base (Bool, flip, if')
 import Maybe (Maybe(..))
@@ -47,6 +48,12 @@ instance Applicative List where
 
 instance Monad List where
   (>>=) = flip concatMap
+
+instance Alternative List where
+  empty = Empty
+  xs <|> Empty = xs
+  Empty <|> xs = xs
+  xs <|> ys = concat xs ys
 
 l3 :: List Int
 l3 = Cons 2 (Cons 5 (Cons 9 Empty))
@@ -110,3 +117,17 @@ tail2 list =
 
 tail2' :: List a -> Maybe (List a)
 tail2' = tail >=> tail
+
+range :: Int -> Int -> List Int
+range n m | n == m    = Empty
+          | otherwise = Cons n $ range (n + 1) m
+
+factors :: Int -> List (Int, Int)
+factors n = do
+  i <- range 1 n
+  j <- range i n
+  guard $ i * j == n
+  pure (i, j)
+
+sums :: List Int -> List Int
+sums = foldM (\acc x -> acc % acc + x % Empty) 0
