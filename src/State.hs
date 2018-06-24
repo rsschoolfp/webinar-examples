@@ -1,27 +1,57 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 module State where
 
-import Prelude (Show, Int, ($), (+), length)
-import Data.Functor (Functor(fmap))
+import Prelude (Show(show), Int, String, ($), (+), length)
+import Data.Functor (Functor(fmap), (<$>))
 import Control.Applicative (Applicative(pure, (<*>)))
 import Control.Monad (Monad((>>=)))
 
-data State s a = State { runState :: s -> (s, a) }
-
 data Stack a = Stack [a] deriving (Show)
 
-push :: a -> State (Stack a) Int
-push x = do
-  Stack xs <- get
-  put $ Stack $ x:xs
-  pure $ length xs + 1
+push :: a -> Stack a -> (Int, Stack a)
+push x (Stack xs) = (length xs + 1, Stack $ x:xs)
 
-pop :: State (Stack a) a
-pop = do
-  Stack (x:xs) <- get
-  put $ Stack xs
-  pure x
+pop :: Stack a -> (a, Stack a)
+pop (Stack (x:xs)) = (x, Stack xs)
+
+program :: Stack String -> Stack String
+program stack@(Stack xs) =
+  let (len, stack1) = push "*" stack
+      (_, stack2)   = push (show len) stack1
+      (_, stack3)   = push "&" stack2
+      (_, stack4)   = pop stack3
+   in stack4
+
+data Tree a
+  = Leaf a
+  | Node (Tree a) (Tree a)
+  deriving (Show, Functor)
+
+-- instance Functor Tree where
+--   fmap f (Leaf x) = Leaf $ f x
+--   fmap f (Node l r) = Node (fmap f l) (fmap f r)
+
+tree :: Tree String
+tree =
+  Node
+    (Node
+      (Node
+        (Leaf "^")
+        (Leaf "&"))
+      (Leaf "**"))
+    (Leaf "#")
+
+numberLeaves :: Int -> Tree a -> (Tree (a, Int), Int)
+numberLeaves n (Leaf x) = (Leaf (x, n), n + 1)
+numberLeaves n (Node l r) =
+  let (l', n')  = numberLeaves n l
+      (r', n'') = numberLeaves n' r
+   in (Node l' r', n'')
+
+data State s a = State { runState :: s -> (s, a) }
 
 instance Functor (State s) where
   fmap f (State sf) =
@@ -58,14 +88,15 @@ gets f = do
   s <- get
   pure $ f s
 
-data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Show)
+next :: State Int Int
+next = do
+  n <- get
+  put $ n + 1
+  pure n
 
-t :: Tree Int
-t = Node (Node (Leaf 37) (Node (Leaf 1) (Leaf 2))) (Node (Leaf 3) (Leaf 4))
+numberLeaves' :: Tree a -> State Int (Tree (a, Int))
+numberLeaves' (Leaf x) = do
+  n <- next
+  pure $ Leaf (x, n)
 
-f :: Int -> Tree Int -> (Tree (Int, Int), Int)
-f n (Leaf x) = (Leaf (x, n), n + 1)
-f n (Node l r) =
-  let (l', n') = f n l
-      (r', n'') = f n' r
-   in (Node l' r', n'')
+numberLeaves' (Node l r) = Node <$> (numberLeaves' l) <*> (numberLeaves' r)
